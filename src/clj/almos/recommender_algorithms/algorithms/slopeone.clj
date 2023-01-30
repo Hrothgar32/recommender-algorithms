@@ -54,15 +54,7 @@
                              (sort-by :rating >))]
     (take top-n recommendations)))
 
-(defn get-user-movies
-""
-[items ratings]
-(let [user-id (key ratings)
-        rat-arr (val ratings)]
-    {:user user-id
-    :ratings (map (fn [x] {:rating (:rating x)
-                        :title (get items (:item x))}) rat-arr)})
-)
+
 
 (comment
   ;; Example usage of slope one recommender

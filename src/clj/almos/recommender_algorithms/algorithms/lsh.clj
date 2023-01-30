@@ -1,14 +1,16 @@
 (ns almos.recommender-algorithms.algorithms.lsh
   (:require
-   [uncomplicate.neanderthal.random :as nrand]
-   [uncomplicate.neanderthal.native :as nnat]
-   [uncomplicate.neanderthal.core :as ncore]
+   [almos.recommender-algorithms.algorithms.stats :as s]
+   [almos.recommender-algorithms.data-io.data :refer [load-items load-ratings
+                                                      serialize-from-file!
+                                                      serialize-to-file!]]
+   [clojure.java.io :as io]
+   [tablecloth.api :as tc]
    [tech.v3.dataset.neanderthal :as dt->n]
    [uncomplicate.fluokitten.core :refer [fmap]]
-   [almos.recommender-algorithms.algorithms.stats :as s]
-   [almos.recommender-algorithms.data-io.data :refer [load-sparse-ratings serialize-from-file! serialize-to-file! load-ratings]]
-   [tablecloth.api :as tc]
-   [clojure.java.io :as io])
+   [uncomplicate.neanderthal.core :as ncore]
+   [uncomplicate.neanderthal.native :as nnat]
+   [uncomplicate.neanderthal.random :as nrand])
   )
 
 (def threshold
@@ -72,7 +74,7 @@
       (tc/select-columns :item)
       (tc/write! (str "resources/" dataset-path "unique-items.csv.gz"))))
 
-(defn- load-unique-items
+(defn load-unique-items
   [dataset-path]
   (tc/rename-columns
     (tc/dataset (str "resources/" dataset-path "unique-items.csv.gz")) {"item" :item}))
@@ -83,10 +85,20 @@
                           (get-sparse-vector))]
     (calculate-lsh-hash sparse-vector rand-normals)))
 
-(defn lsh-recommend [lsh-buckets user-query all-items rand-normals top-n]
+(defn extract-item-from-bucket [bucket grouped-ratings items]
+  (let [user-id (first (second bucket))
+        user-ratings (map #(nth % 2) (-> (get grouped-ratings user-id)
+                                        (tc/head 3)
+                                        (tc/rows)))]
+    (map (fn [x] (get items x)) user-ratings)))
+
+(defn lsh-recommend [lsh-buckets user-query all-items rand-normals top-n grouped-ratings items]
   (let [query-hash (generate-query-hash all-items user-query rand-normals)
-        sorted-buckets (sort-by (s/hamming-distance-sort query-hash) < lsh-buckets)]
-    (take top-n sorted-buckets)))
+        sorted-buckets (sort-by (s/hamming-distance-sort query-hash) < lsh-buckets)
+        first-n-buck (take top-n sorted-buckets)]
+    (distinct (apply concat (for [buck first-n-buck
+                                  :let [y (extract-item-from-bucket buck grouped-ratings items)]]
+                              y)))))
 
 (comment
   ;; Example usage of locality sensitive hashing
@@ -106,9 +118,11 @@
     (-> (load-ratings "datasets/ml-100k/u1.base")
         (tc/dataset)
         (tc/group-by :user {:result-type :as-map})
-        (vals)))
+        ))
 
-  (first grouped-ratings)
+  (map #(nth % 2) (tc/rows (tc/head (get grouped-ratings 893) 3)))
+
+  (tc/select-rows (first grouped-ratings))
 
   (io/resource  "datasets/ml-100k/u1.base")
 
@@ -116,7 +130,9 @@
     (-> (load-ratings "datasets/ml-100k/u1.test")
         (tc/dataset)
         (tc/group-by :user {:result-type :as-map})
-        (vals)))
+        ))
+
+  (def items (load-items "datasets/ml-100k/u.item"))
 
   ;; Getting random normal vectors
   (def ml-100k-rand-normals (generate-random-vectors 20 ml-100k-d))
@@ -126,9 +142,11 @@
 
   (serialize-to-file! "resources/datasets/ml-100k/frozen-bucket.data" buckets)
 
+  (serialize-to-file! "resources/datasets/ml-100k/frozen-normals.data" ml-100k-rand-normals)
+
   (def buckets (serialize-from-file! "resources/datasets/ml-100k/frozen-bucket.data"))
 
-  (lsh-recommend buckets (nth test-ratings 5) ml-100k-all-items ml-100k-rand-normals 10)
+  (lsh-recommend buckets (get test-ratings 357) ml-100k-all-items ml-100k-rand-normals 10 grouped-ratings items)
   ;;;
   ;;; Ml-1M
   )

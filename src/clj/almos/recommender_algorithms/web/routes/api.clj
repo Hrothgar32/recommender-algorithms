@@ -1,6 +1,7 @@
 (ns almos.recommender-algorithms.web.routes.api
   (:require
    [almos.recommender-algorithms.web.controllers.health :as health]
+   [almos.recommender-algorithms.web.controllers.lsh :as lsh]
    [almos.recommender-algorithms.web.controllers.slope :as slope]
    [almos.recommender-algorithms.web.middleware.exception :as exception]
    [almos.recommender-algorithms.web.middleware.formats :as formats]
@@ -23,7 +24,12 @@
     [""
      {:get slope/get-users}]
     ["/:id"
-     {:get slope/get-recs-for-user}]]])
+     {:get slope/get-recs-for-user}]]
+   ["/lsh"
+    [""
+     {:get lsh/get-users}]
+    ["/:id"
+     {:get lsh/get-recs-for-user}]]])
 
 (defn route-data
   [opts]

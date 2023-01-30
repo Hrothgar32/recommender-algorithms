@@ -3,27 +3,27 @@
    [re-frame.core :as rf]))
 
 (rf/reg-sub
- :slope/user-ratings
+ :backend/user-ratings
  (fn [db _]
-   (:slope/user-ratings db)))
+   (:backend/user-ratings db)))
 
 (rf/reg-sub
- :slope/user-ratings-loading
+ :backend/user-ratings-loading
  (fn [db _]
-   (:slope/user-ratings-loading db)))
+   (:backend/user-ratings-loading db)))
 
 (rf/reg-sub
- :slope/user-ratings-empty?
- :<- [:slope/user-ratings]
+ :backend/user-ratings-empty?
+ :<- [:backend/user-ratings]
  (fn [user-ratings _]
    (empty? user-ratings)))
 
 (rf/reg-sub
- :slope/recommendations
+ :backend/recommendations
  (fn [db _]
-   (:slope/recommendations db)))
+   (:backend/recommendations db)))
 
 (rf/reg-sub
- :slope/recommendations-loaded?
+ :backend/recommendations-loaded?
  (fn [db _]
-   (:slope/recommendations-loaded? db)))
+   (:backend/recommendations-loaded? db)))

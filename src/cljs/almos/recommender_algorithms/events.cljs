@@ -13,44 +13,44 @@
   (str/join "/" (cons api-url params)))
 
 (reg-event-fx
- :slope/get-user-ratings
- (fn [{:keys [db]} _]
-   {:db (assoc db :slope/user-ratings-loading true)
+ :backend/get-user-ratings
+ (fn [{:keys [db]} [_ algorithm]]
+   {:db (assoc db :backend/user-ratings-loading true)
     :http-xhrio {:method :get
-                 :uri (endpoint "slope")
+                 :uri (endpoint algorithm)
                  :response-format (json-response-format {:keywords? true})
-                 :on-success [:slope/get-user-ratings-success]
-                 :on-failure [:slope/api-request-error]}}))
+                 :on-success [:backend/get-user-ratings-success]
+                 :on-failure [:backend/api-request-error]}}))
 
 (reg-event-fx
- :slope/get-recommendations
- (fn [{:keys [db]} [_ person-id]]
+ :backend/get-recommendations
+ (fn [{:keys [db]} [_ algorithm person-id]]
    {:http-xhrio {:method :get
-                 :uri (endpoint "slope" person-id)
+                 :uri (endpoint algorithm person-id)
                  :response-format (json-response-format {:keywords? true})
-                 :on-success [:slope/get-recommendations-success]
-                 :on-failure [:slope/api-request-error]}}))
+                 :on-success [:backend/get-recommendations-success]
+                 :on-failure [:backend/api-request-error]}}))
 
 (reg-event-db
- :slope/get-recommendations-success
+ :backend/get-recommendations-success
  (fn [db [_ recommendations]]
-   (assoc db :slope/recommendations recommendations
-             :slope/recommendations-loaded? true)))
+   (assoc db :backend/recommendations recommendations
+             :backend/recommendations-loaded? true)))
 
 (reg-event-db
- :slope/reset-recommendations
+ :backend/reset-recommendations
  (fn [db _]
-   (assoc db :slope/recommendations []
-             :slope/recommendations-loaded? false)))
+   (assoc db :backend/recommendations []
+             :backend/recommendations-loaded? false)))
 
 
 (reg-event-db
- :slope/get-user-ratings-success
+ :backend/get-user-ratings-success
  (fn [db [_ user-ratings]]
-   (assoc db :slope/user-ratings user-ratings
-             :slope/user-ratings-loading false)))
+   (assoc db :backend/user-ratings user-ratings
+             :backend/user-ratings-loading false)))
 
 (reg-event-db
- :slope/api-request-error
+ :backend/api-request-error
  (fn [db _]
    (assoc db :error true)))

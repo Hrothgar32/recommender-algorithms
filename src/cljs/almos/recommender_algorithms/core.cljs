@@ -1,6 +1,8 @@
 (ns almos.recommender-algorithms.core
     (:require
      [almos.recommender-algorithms.routes :refer [app-routes]]
+     [almos.recommender-algorithms.subs :as subs]
+     [almos.recommender-algorithms.events :as events]
      [re-frame.core :as rf]
      [reagent.dom :as d]
      [reitit.coercion.spec :as reitit-spec]
