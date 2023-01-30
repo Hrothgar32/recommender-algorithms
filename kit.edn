@@ -1,0 +1,8 @@
+{:full-name "almos/recommender-algorithms"
+ :ns-name   "almos.recommender-algorithms"
+ :sanitized "almos/recommender_algorithms"
+ :name      "recommender-algorithms"
+ :modules   {:root         "modules"
+             :repositories [{:url  "https://github.com/kit-clj/modules.git"
+                             :tag  "master"
+                             :name "kit-modules"}]}}

@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  clj-backend:
+    build:
+      context: .
+    volumes:
+        - "datasets:/resources/datasets/"
+
+  svd:
+    build:
+      context: ./src/python/
+    volumes:
+        - "datasets:/app/resources/"
+
+volumes:
+  datasets:

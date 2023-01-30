@@ -1,14 +1,15 @@
 (ns almos.recommender-algorithms.web.routes.api
   (:require
-    [almos.recommender-algorithms.web.controllers.health :as health]
-    [almos.recommender-algorithms.web.middleware.exception :as exception]
-    [almos.recommender-algorithms.web.middleware.formats :as formats]
-    [integrant.core :as ig]
-    [reitit.coercion.malli :as malli]
-    [reitit.ring.coercion :as coercion]
-    [reitit.ring.middleware.muuntaja :as muuntaja]
-    [reitit.ring.middleware.parameters :as parameters]
-    [reitit.swagger :as swagger]))
+   [almos.recommender-algorithms.web.controllers.health :as health]
+   [almos.recommender-algorithms.web.controllers.slope :as slope]
+   [almos.recommender-algorithms.web.middleware.exception :as exception]
+   [almos.recommender-algorithms.web.middleware.formats :as formats]
+   [integrant.core :as ig]
+   [reitit.coercion.malli :as malli]
+   [reitit.ring.coercion :as coercion]
+   [reitit.ring.middleware.muuntaja :as muuntaja]
+   [reitit.ring.middleware.parameters :as parameters]
+   [reitit.swagger :as swagger]))
 
 ;; Routes
 (defn api-routes [_opts]
@@ -17,7 +18,12 @@
            :swagger {:info {:title "almos.recommender-algorithms API"}}
            :handler (swagger/create-swagger-handler)}}]
    ["/health"
-    {:get health/healthcheck!}]])
+    {:get health/healthcheck!}]
+   ["/slope"
+    [""
+     {:get slope/get-users}]
+    ["/:id"
+     {:get slope/get-recs-for-user}]]])
 
 (defn route-data
   [opts]

@@ -12,12 +12,15 @@ def recommend_n_similar(user_id):
     return jsonify(topN_similar(user_id, usk, user_index))
 
 
-data = pd.read_csv(
-    "../../resources/datasets/ml-100k/ua.base", delimiter="\t", header=None
-)
-del data[3]  # Deleting timestamps
-data.columns = ["user", "item", "rating"]
-temp_matrix, users, items = create_temp_matrix(data)
-usk, usv, user_index, prediction_mask = create_svd_matrix(temp_matrix, users, items, 15)
+try:
+    data = pd.read_csv("./resources/ml-100k/ua.base", delimiter="\t", header=None)
+    del data[3]  # Deleting timestamps
+    data.columns = ["user", "item", "rating"]
+    temp_matrix, users, items = create_temp_matrix(data)
+    usk, usv, user_index, prediction_mask = create_svd_matrix(
+        temp_matrix, users, items, 15
+    )
+except:
+    print("Couldn't train data")
 
-app.run(debug=True)
+app.run()

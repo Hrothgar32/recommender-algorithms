@@ -54,6 +54,16 @@
                              (sort-by :rating >))]
     (take top-n recommendations)))
 
+(defn get-user-movies
+""
+[items ratings]
+(let [user-id (key ratings)
+        rat-arr (val ratings)]
+    {:user user-id
+    :ratings (map (fn [x] {:rating (:rating x)
+                        :title (get items (:item x))}) rat-arr)})
+)
+
 (comment
   ;; Example usage of slope one recommender
   (def recommender
@@ -62,16 +72,28 @@
                             (vals))
           recommender  (->> (rest user-ratings)
                             (slope-one-recommender))]
-      ;; items     (load-items "datasets/ml-100k/u.item")
-      ;; item-name (fn [item]
-      ;;             (get items (:item item)))]
-      ;; (->> (slope-one-recommend recommender user-1 10)
-      ;;      (map item-name))
       recommender))
   (def user-ratings (->> (load-ratings "datasets/ml-100k/ua.base")
                          (group-by :user)
-                         (vals)))
+                         ))
+  user-ratings
+
+  (defn get-user-movies
+    ""
+    [items ratings]
+    (let [user-id (key ratings)
+          rat-arr (val ratings)]
+      {:user user-id
+       :ratings (map (fn [x] {:rating (:rating x)
+                            :title (get items (:item x))}) rat-arr)})
+    )
+
+  (map (fn [x] {:id x}) [1 2 3 4])
+
+
   (def items (load-items "datasets/ml-100k/u.item"))
+
+  (map (partial get-user-movies items) user-ratings)
   (defn item-name [item]
     (get items (:item item)))
 

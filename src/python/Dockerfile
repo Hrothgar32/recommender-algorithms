@@ -1,6 +1,6 @@
 FROM frolvlad/alpine-python-machinelearning
-WORKDIR /
-COPY . /
+WORKDIR /app
+COPY . /app
 
 RUN pip install flask
-RUN python server.py
+CMD python server.py

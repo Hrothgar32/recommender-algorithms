@@ -1,0 +1,26 @@
+{:nrepl {:port 7002}
+ :source-paths ["src/cljs"
+                "resources/html"
+                "resources/public/css"]
+ :dependencies [[binaryage/devtools "1.0.6"]
+                [nrepl "0.8.3"]
+                [reagent "1.1.0"]
+                [re-frame "1.2.0"]
+                [cider/cider-nrepl "0.28.3"]
+                [day8.re-frame/tracing "0.6.2"]
+                [day8.re-frame/re-frame-10x "1.2.8"]
+                [day8.re-frame/http-fx "0.2.4"]
+                 [metosin/reitit "0.5.10"]
+                [cljs-ajax "0.8.4"]]
+ :builds       {:app {:target     :browser
+                      :output-dir "target/classes/cljsbuild/public/js"
+                      :asset-path "/js"
+                      :modules    {:app {:entries [almos.recommender-algorithms.core]
+                                         :init-fn almos.recommender-algorithms.core/init!}}
+                      :devtools   {:after-load almos.recommender-algorithms.core/mount-root
+                                   :preloads [day8.re-frame-10x.preload]}
+                      :dev
+                      {:compiler-options
+                       {:closure-defines
+                        { re-frame.trace.trace-enabled? true
+                          day8.re-frame.tracing.trace-enabled? true }}}}}}

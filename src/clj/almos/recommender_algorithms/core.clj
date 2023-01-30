@@ -15,7 +15,8 @@
 
     ;; Routes
     [almos.recommender-algorithms.web.routes.api]
-    )
+    
+    [almos.recommender-algorithms.web.routes.pages])
   (:gen-class))
 
 ;; log uncaught exceptions in threads
