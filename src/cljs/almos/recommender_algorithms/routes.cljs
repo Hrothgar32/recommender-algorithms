@@ -2,7 +2,8 @@
   (:require
    [almos.recommender-algorithms.views.home :as home]
    [almos.recommender-algorithms.views.lsh :as lsh]
-   [almos.recommender-algorithms.views.slopeone :as slopeone]))
+   [almos.recommender-algorithms.views.slopeone :as slopeone]
+   [almos.recommender-algorithms.views.svd :as svd]))
 
 (defn app-routes []
   [""
@@ -16,5 +17,9 @@
    ["/lsh"
     {:name ::lsh
      :controllers lsh/lsh-controllers
-     :view #'lsh/lsh}]]
+     :view #'lsh/lsh}]
+   ["/svd"
+    {:name ::svd
+     :controllers svd/svd-controllers
+     :view #'svd/svd}]]
   )
