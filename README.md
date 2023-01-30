@@ -1,4 +1,12 @@
-# recommender-algorithms
+# Recommender Algorithms
+
+## How to build?
+
+``` sh
+docker-compose up -d
+```
+
+`
 
 Start a [REPL](#repls) in your editor or terminal of choice.
 
