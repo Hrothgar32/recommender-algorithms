@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from svd import create_svd_matrix, topN_similar
+from svd import create_svd_matrix, topN_similar, recommend
 from utils import create_temp_matrix
 import pandas as pd
 
@@ -10,6 +10,11 @@ app = Flask(__name__)
 def recommend_n_similar(user_id):
     global usk, user_index
     return jsonify(topN_similar(user_id, usk, user_index))
+
+
+@app.route("/recommend<int:user_id")
+def recommend_n_items(user_id):
+    return jsonify(recommend(users_list=[user_id]))
 
 
 try:

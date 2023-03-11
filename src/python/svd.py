@@ -58,31 +58,28 @@ def topN_similar(user_query, Usk, user_index, N=10, weight=True):
     return out
 
 
-def recommend(self, users_list, N=10, values=False):
-
+def recommend(predMask, UsV, user_index, users_list, items, N=10, values=False):
     # utilMat element not zero means that element has already been
     # discovered by the user and can not be recommended
-    predMat = np.ma.masked_where(self.predMask, self.UsV).filled(fill_value=-999)
+    predMat = np.ma.masked_where(predMask, UsV).filled(fill_value=-999)
     out = []
 
     if values == True:
         for user in users_list:
             try:
-                j = self.user_index[user]
+                j = user_index[user]
             except:
                 raise Exception("Invalid user:", user)
             max_indices = predMat[j, :].argsort()[-N:][::-1]
-            out.append(
-                [(self.items[index], predMat[j, index]) for index in max_indices]
-            )
+            out.append([(items[index], predMat[j, index]) for index in max_indices])
 
     else:
         for user in users_list:
             try:
-                j = self.user_index[user]
+                j = user_index[user]
             except:
                 raise Exception("Invalid user:", user)
             max_indices = predMat[j, :].argsort()[-N:][::-1]
-            out.append([self.items[index] for index in max_indices])
+            out.append([items[index] for index in max_indices])
 
     return out

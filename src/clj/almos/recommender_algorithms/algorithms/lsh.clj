@@ -1,17 +1,17 @@
 (ns almos.recommender-algorithms.algorithms.lsh
   (:require
    [almos.recommender-algorithms.algorithms.stats :as s]
-   [almos.recommender-algorithms.data-io.data :refer [load-items load-ratings
-                                                      serialize-from-file!
-                                                      serialize-to-file!]]
+   [almos.recommender-algorithms.data-io.data :refer [fill-missing-with-mean
+                                                      load-items load-ratings
+                                                      serialize-from-file! serialize-to-file!]]
    [clojure.java.io :as io]
    [tablecloth.api :as tc]
    [tech.v3.dataset.neanderthal :as dt->n]
    [uncomplicate.fluokitten.core :refer [fmap]]
    [uncomplicate.neanderthal.core :as ncore]
+   [uncomplicate.neanderthal.linalg :as nlin]
    [uncomplicate.neanderthal.native :as nnat]
-   [uncomplicate.neanderthal.random :as nrand])
-  )
+   [uncomplicate.neanderthal.random :as nrand]))
 
 (def threshold
   "The sign function which translates a value into a binary 1 or 0."
@@ -41,7 +41,7 @@
             (tc/add-columns {:rating 0.0
                              :user user-id})
             (tc/reorder-columns :user [:item :rating]))] (-> (tc/union user-ratings missing-values)
-        (tc/order-by :item))))
+                                                             (tc/order-by :item))))
 
 (defn get-sparse-vector [sparse-ratings]
   (-> sparse-ratings
@@ -77,7 +77,7 @@
 (defn load-unique-items
   [dataset-path]
   (tc/rename-columns
-    (tc/dataset (str "resources/" dataset-path "unique-items.csv.gz")) {"item" :item}))
+   (tc/dataset (str "resources/" dataset-path "unique-items.csv.gz")) {"item" :item}))
 
 (defn generate-query-hash
   [all-items user-ratings rand-normals]
@@ -88,8 +88,8 @@
 (defn extract-item-from-bucket [bucket grouped-ratings items]
   (let [user-id (first (second bucket))
         user-ratings (map #(nth % 2) (-> (get grouped-ratings user-id)
-                                        (tc/head 3)
-                                        (tc/rows)))]
+                                         (tc/head 3)
+                                         (tc/rows)))]
     (map (fn [x] (get items x)) user-ratings)))
 
 (defn lsh-recommend [lsh-buckets user-query all-items rand-normals top-n grouped-ratings items]
@@ -110,15 +110,35 @@
   ;; Loading back these items
   (def ml-100k-all-items (load-unique-items "datasets/ml-100k/u1.base"))
 
-
   (def ml-100k-d (first (tc/shape ml-100k-all-items)))
 
   ;; Grouped ratings
   (def grouped-ratings
     (-> (load-ratings "datasets/ml-100k/u1.base")
         (tc/dataset)
-        (tc/group-by :user {:result-type :as-map})
-        ))
+        (tc/group-by :user {:result-type :as-map})))
+
+
+  (def completed-dataset-for-svd
+    (apply tc/concat (map fill-missing-with-mean (-> grouped-ratings-seq
+                                                     (tc/complete :user :item)
+                                                     (tc/group-by :user {:result-type :as-seq})))))
+
+  (:sigma (-> (nnat/dge 943 1650 (:rating completed-dataset-for-svd))
+              (nlin/svd true true)))
+
+  (defn my-fun [ds]
+    (reduce (fn [coll row]
+              (let [value (nth row 2)
+                    i (dec (first row))
+                    j (dec (second row))]
+                (assoc-in coll [i j] value))) [] (tc/rows ds)))
+
+  (first (tc/shape (tc/unique-by completed-dataset-for-svd :user)))
+  (first (tc/shape (tc/unique-by completed-dataset-for-svd :item)))
+
+  (-> grouped-ratings-seq
+      (tc/complete :user :item))
 
   (map #(nth % 2) (tc/rows (tc/head (get grouped-ratings 893) 3)))
 
@@ -129,8 +149,7 @@
   (def test-ratings
     (-> (load-ratings "datasets/ml-100k/u1.test")
         (tc/dataset)
-        (tc/group-by :user {:result-type :as-map})
-        ))
+        (tc/group-by :user {:result-type :as-map})))
 
   (def items (load-items "datasets/ml-100k/u.item"))
 

@@ -1,9 +1,12 @@
 (ns almos.recommender-algorithms.data-io.data
-  (:require [clojure.java.io :as io]
-            [clojure.string :as s]
-            [tablecloth.api :as tc]
-            [taoensso.nippy :as nippy])
-  (:import [java.io DataInputStream DataOutputStream]))
+  (:require
+   [clojure.java.io :as io]
+   [clojure.string :as s]
+   [tablecloth.api :as tc]
+   [taoensso.nippy :as nippy]
+   [tech.v3.datatype.functional :as dfn])
+  (:import
+   [java.io DataInputStream DataOutputStream]))
 
 (defn to-long [s]
   (Long/parseLong s))
@@ -16,7 +19,6 @@
 (defn line->item-tuple [line]
   (let [[id name] (s/split line #"\|")]
     (vector (to-long id) name)))
-
 
 (defn load-items [path]
   (with-open [rdr (io/reader (io/resource path))]
@@ -42,6 +44,10 @@
                             (vals))]
     grouped-ratings))
 
+(defn fill-missing-with-mean [ds]
+  (let [rating-means (-> (tc/aggregate ds #(dfn/mean (% :rating)))
+                         (tc/get-entry "summary" 0))]
+    (tc/replace-missing ds :rating :value rating-means)))
 
 (defn get-user-movies
   [items ratings]
@@ -54,8 +60,8 @@
 (defn extract-ratings-from-dataset!
   [ratings-file items-file]
   (let [ratings (group-by :user (load-ratings ratings-file))
-         items (load-items items-file)]
-     (map (partial get-user-movies items) ratings)))
+        items (load-items items-file)]
+    (map (partial get-user-movies items) ratings)))
 
 (defn serialize-to-file! [path data]
   (with-open [w (io/output-stream path)]

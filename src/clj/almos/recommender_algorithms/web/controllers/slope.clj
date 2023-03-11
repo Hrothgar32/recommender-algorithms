@@ -6,7 +6,7 @@
    [ring.util.http-response :as response]))
 
 (defn get-users
-  [req]
+  [_]
   (response/ok
    (extract-ratings-from-dataset! "datasets/ml-100k/ua.base" "datasets/ml-100k/u.item")))
 
