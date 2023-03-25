@@ -114,31 +114,25 @@
 
   ;; Grouped ratings
   (def grouped-ratings
-    (-> (load-ratings "datasets/ml-100k/u1.base")
+    (-> (load-ratings "datasets/ml-100k/ua.base")
         (tc/dataset)
-        (tc/group-by :user {:result-type :as-map})))
+        ))
+
 
 
   (def completed-dataset-for-svd
-    (apply tc/concat (map fill-missing-with-mean (-> grouped-ratings-seq
+    (apply tc/concat (map fill-missing-with-mean (-> grouped-ratings
                                                      (tc/complete :user :item)
                                                      (tc/group-by :user {:result-type :as-seq})))))
 
-  (:sigma (-> (nnat/dge 943 1650 (:rating completed-dataset-for-svd))
+  (:sigma (-> (nnat/dge 943 1680 (:rating completed-dataset-for-svd))
               (nlin/svd true true)))
 
-  (defn my-fun [ds]
-    (reduce (fn [coll row]
-              (let [value (nth row 2)
-                    i (dec (first row))
-                    j (dec (second row))]
-                (assoc-in coll [i j] value))) [] (tc/rows ds)))
+  (def user-index
+    (zipmap (:user (tc/unique-by completed-dataset-for-svd :user)) (range 943)))
 
   (first (tc/shape (tc/unique-by completed-dataset-for-svd :user)))
   (first (tc/shape (tc/unique-by completed-dataset-for-svd :item)))
-
-  (-> grouped-ratings-seq
-      (tc/complete :user :item))
 
   (map #(nth % 2) (tc/rows (tc/head (get grouped-ratings 893) 3)))
 
@@ -168,4 +162,6 @@
   (lsh-recommend buckets (get test-ratings 357) ml-100k-all-items ml-100k-rand-normals 10 grouped-ratings items)
   ;;;
   ;;; Ml-1M
+
+
   )
